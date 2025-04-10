@@ -1,0 +1,210 @@
+""" Alogorithme pour déterminer la longueur des cordes
+et la position des accroches"""
+
+""" Bibliothèques """
+import numpy as np
+import matplotlib.pyplot as plt
+
+""" Données d'entrée """
+d1 = 0.95 #en m longueur de la corde en projection sur y en position haute
+d2 = 4.75 #en m longueur de la corde en projection sur y en position basse
+
+alpha_c = 30*(2*np.pi/360) #choix de l'angle critique en projection sur xy
+
+#Constantes propres à l'ellipse du dirigeable
+a = 2.5
+b = 3.5
+c = 0.75
+
+#Position des quatres arceaux 
+xa = 0.15
+za = 0.05
+xb = -0.15
+zb = 0.05
+xc = -0.15
+zc = -0.05
+xd = 0.15
+zd = -0.05
+
+
+x = d1/np.tan(alpha_c) #position de l'accroche
+
+""" Programmes """
+
+def ellipse(x):
+    #Renvoie la valeur de z pour un x donné sur la courbe de l'éllipse du dirigeable
+    if x >= 0:
+        return c * np.sqrt(1 - ((x/b)**2))
+
+    else :
+        return c * np.sqrt(1 - ((x/a)**2))
+
+    
+def test_ellipse():
+    #comme son nom l'indique
+    x = np.linspace(-15,15,30000)
+    z = [ellipse(k) for k in x]
+    z2 = [-ellipse(k) for k in x]
+    #plt.title("Test de l'éllipse2")
+    plt.plot(x,z,'r-')
+    plt.plot(x,z2,'r-')
+    
+    #plt.grid()
+    #plt.show()
+
+""" Alogorithme """
+# Choisir alpha critique
+# calculer x
+# choisir z pour être sur la paroi du dirigeable
+# cacluler beta critique
+# vérifier beta critique
+# calcul de Lx et lz
+# calcul de L
+
+z = ellipse(x)
+
+beta_c = np.arctan(d1/z)
+
+def f(x0):
+    #x0 position de l'arceau
+    alpha_c = 30*(2*np.pi/360)
+    if x0 > 0:
+        x = x0 + d1/np.tan(alpha_c)
+    
+    
+        z = ellipse(x)
+        beta_c = np.arctan(d1/z)
+    
+        while (360/(2*np.pi)) * abs((alpha_c-beta_c)) > 0.0001:
+            alpha_c = alpha_c + 0.0001*(2*np.pi/360)
+            x = x0 + d1/np.tan(alpha_c)
+            z = ellipse(x)
+            beta_c = np.arctan(d1/z)
+    
+    else:
+        x = x0 - d1/np.tan(alpha_c)
+        
+        z = ellipse(x)
+        beta_c = np.arctan(d1/z)
+    
+        while (360/(2*np.pi)) * abs((alpha_c-beta_c)) > 0.0001:
+            alpha_c = alpha_c + 0.0001*(2*np.pi/360)
+            x = x0 - d1/np.tan(alpha_c)
+            z = ellipse(x)
+            beta_c = np.arctan(d1/z)
+    
+    return x,z,alpha_c,beta_c
+
+def figure():
+    plt.figure(1)
+    test_ellipse()
+    plt.plot(xa,za,"g*")
+    plt.plot(xb,zb,"g*")
+    plt.plot(xc,zc,"g*")
+    plt.plot(xd,zd,"g*")
+    
+    #Pour xa
+    Pa = f(xa)
+    Xa = Pa[0]
+    Za = Pa[1]
+    alpha_c_a = Pa[2]
+    beta_c_a = Pa[3]
+    plt.plot(Xa,Za,'k--')
+    plt.plot(Xa,Za,'b*')
+
+    
+    #Pour xb
+    Pb = f(xb)
+    Xb = Pb[0]
+    Zb = Pb[1]
+    alpha_c_b = Pb[2]
+    beta_c_b = Pb[3]
+    plt.plot(Xb,Zb,'k--')
+    plt.plot(Xb,Zb,'b*')
+
+    
+    
+    #Pour xc
+    Pc = f(xc)
+    Xc = Pc[0]
+    Zc = -Pc[1]   
+    alpha_c_c = Pc[2]
+    beta_c_c = Pc[3]
+    plt.plot(Xc,Zc,'k--')
+    plt.plot(Xc,Zc,'b*')
+    
+    #Pour xd
+    Pd = f(xd)
+    Xd = Pd[0]
+    Zd = -Pd[1]
+    alpha_c_d = Pd[2]
+    beta_c_d = Pd[3]
+    plt.plot(Xd,Zd,'k--')
+    plt.plot(Xd,Zd,'b*')
+    
+    #tracés cordes
+    plt.plot([xa,Xa],[za,Za],"k--")
+    plt.plot([xb,Xb],[zb,Zb],"k--")
+    plt.plot([xc,Xc],[zc,Zc],"k--")
+    plt.plot([xd,Xd],[zd,Zd],"k--")
+
+    
+    
+    plt.xlabel("Longueur du dirigeable en m")
+    plt.ylabel("Largeur du dirigeable en m")
+    plt.title("Position des accroches de cable sur le dirigeable")
+    plt.show()
+    
+    print("     ")
+    print("Alpha critique a = ",(360/(2*np.pi)) * alpha_c_a,"°")
+    print("Alpha critique b = ",(360/(2*np.pi)) * alpha_c_b,"°")
+    print("Alpha critique c = ",(360/(2*np.pi)) * alpha_c_c,"°")
+    print("Alpha critique d = ",(360/(2*np.pi)) * alpha_c_d,"°")
+    
+    print("     ")
+    
+    print("Beta critique a =",(360/(2*np.pi)) * beta_c_a,"°")
+    print("Beta critique b =",(360/(2*np.pi)) * beta_c_b,"°")
+    print("Beta critique c =",(360/(2*np.pi)) * beta_c_c,"°")
+    print("Beta critique d =",(360/(2*np.pi)) * beta_c_d,"°")
+    
+    print("     ")
+    print("Point en haut à droite")
+    print("Position selon x à ",Xa,"m")
+    print("Position selon z à ",Za,"m")
+    print("     ")
+    print("Point en haut à gauche")
+    print("Position selon x à ",Xb,"m")
+    print("Position selon z à ",Zb,"m")
+    print("     ")
+    print("Point en bas à gauche")
+    print("Position selon x à ",Xc,"m")
+    print("Position selon z à ",Zc,"m")
+    print("     ")
+    print("Point en bas à droite")
+    print("Position selon x à ",Xd,"m")
+    print("Position selon z à ",Zd,"m")
+
+def longueur(Xa,Za):
+    #programme pour calculer la longueur de corde enroulée et déroulée
+    alpha_2 = np.arctan(d2/Xa)
+    beta_2 = np.arctan(d2/Za)
+    L_min = np.sqrt( (d1/np.tan(alpha_c))**2 + d1**2 + (d1/np.tan(beta_c)**2) )
+    L_max = np.sqrt( (d2/np.tan(alpha_2))**2 + d2**2 + (d2/np.tan(beta_2)**2) )
+    
+    return L_min,L_max
+   
+""" Exécution """
+figure()
+x = f(xa)[0]
+z = f(xa)[1]
+alpha_c = f(xa)[2]
+beta_c = f(xa)[3]
+print("     ")
+print("Longueur de corde enroulée : ",longueur(x,z)[0],"m")
+print("Longueur de corde déroulée : ",longueur(x,z)[1],"m")
+    
+
+
+
+
